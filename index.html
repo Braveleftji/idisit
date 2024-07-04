@@ -37,6 +37,29 @@
   window.app = app;
   window.database = database;
         debugger;
+  const api = {
+                get:(url,data)=>get(child(ref(database),`${url}${data}`)).then((snapshot) => {
+                      if (snapshot.exists()) {
+                        return snapshot.val();
+                      } else {
+                        console.error("No data available");
+                        return null;
+                      }
+                    }).catch((error) => {
+                      console.error(error);
+                    }),
+                post : (url,postData)=> { 
+                    
+                      // Get a key for a new Post.
+                      const newPostKey = push(child(ref(database), `${url}`)).key;
+                    
+                      // Write the new post's data simultaneously in the posts list and the user's post list.
+                      const updates = {};
+                      updates[`${url}${newPostKey}`] = postData;
+                    
+                      return update(ref(database), updates);
+                    }
+}
 </script>
 </head>
 <body>
