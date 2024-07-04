@@ -1,70 +1,208 @@
 <!DOCTYPE html>
 <html lang="ko">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>아이디스 IT</title>
+    <style>
+      /* styles.css */
+      body {
+        margin: 0;
+      }
+
+      .container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background: #009ca6;
+      }
+
+      .table-wrapper {
+        background-color: rgb(222, 227, 231);
+        padding: 50px;
+        font-weight: 900;
+        border-radius: 20px;
+        box-shadow: 4px 4px 4px rgb(29, 28, 28);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+      }
+      .title {
+        color: #009ca6;
+        line-height: 1.6;
+      }
+      header {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+
+      table {
+        width: 100%;
+        max-width: 800px;
+        border-collapse: collapse;
+        margin: 20px 0;
+        font-size: 1em;
+        min-width: 400px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+        color: #333;
+      }
+
+      table th,
+      table td {
+        padding: 12px 15px;
+        border: 1px solid #003b87;
+      }
+
+      table tbody tr {
+        background: linear-gradient(90deg, #ff6e40, #f89076);
+        border-bottom: 1px solid #003b87;
+      }
+
+      table tbody tr:nth-of-type(even) {
+        background: linear-gradient(90deg, #ff6e40, #f7795a);
+      }
+
+      table tbody tr:last-of-type {
+        border-bottom: 2px solid #003b87;
+      }
+
+      table tbody tr:hover {
+        background-color: #ffeee4;
+      }
+
+      button {
+        background: linear-gradient(90deg, #003b87, #0055a4);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 4px 2px;
+        cursor: pointer;
+        transition-duration: 0.4s;
+        border-radius: 5px;
+        width: 100%;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+      }
+
+      button:hover {
+        background: linear-gradient(90deg, #00214d, #003769);
+        box-shadow: 0 0 -10px rgba(0, 0, 0, 0.15);
+      }
+    </style>
     <script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-analytics.js";
-  import { getDatabase, ref, set, onValue, child, get, push, update } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-database.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
+      // Import the functions you need from the SDKs you need
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
+      import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-analytics.js";
+      import {
+        getDatabase,
+        ref,
+        set,
+        onValue,
+        child,
+        get,
+        push,
+        update,
+      } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-database.js";
+      // TODO: Add SDKs for Firebase products that you want to use
+      // https://firebase.google.com/docs/web/setup#available-libraries
 
-  // Your web app's Firebase configuration
-  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-  const firebaseConfig = {
-    apiKey: "AIzaSyD-tRpUPQHqlgTiWr4Yc_UXTPH-wEQ9Mfg",
-    authDomain: "idisit-1d657.firebaseapp.com",
-    projectId: "idisit-1d657",
-    storageBucket: "idisit-1d657.appspot.com",
-    messagingSenderId: "854417366021",
-    appId: "1:854417366021:web:aca2a75c40a5600d0a506c",
-    measurementId: "G-M08JSHJMK0",
-    databaseURL: "https://idisit-1d657-default-rtdb.firebaseio.com",
-  };
+      // Your web app's Firebase configuration
+      // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+      const firebaseConfig = {
+        apiKey: "AIzaSyD-tRpUPQHqlgTiWr4Yc_UXTPH-wEQ9Mfg",
+        authDomain: "idisit-1d657.firebaseapp.com",
+        projectId: "idisit-1d657",
+        storageBucket: "idisit-1d657.appspot.com",
+        messagingSenderId: "854417366021",
+        appId: "1:854417366021:web:aca2a75c40a5600d0a506c",
+        measurementId: "G-M08JSHJMK0",
+        databaseURL: "https://idisit-1d657-default-rtdb.firebaseio.com",
+      };
 
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const analytics = getAnalytics(app);
+      const database = getDatabase(app);
 
+      const checkNull = (value, name) => {
+        if ((!value || value === "") && value !== 0) {
+          alert(`${name} is null`);
+          return false;
+        }
+      };
 
+      const api = {
+        get: async (url, data = "") => {
+          if (checkNull(url, "url")) {
+            return;
+          }
+          return await get(child(ref(database), `${url}/${data}`))
+            .then(async (snapshot) => {
+              if (snapshot.exists()) {
+                return await snapshot.val();
+              } else {
+                console.error("No data available");
+                return null;
+              }
+            })
+            .catch((error) => {
+              console.error(error);
+            });
+        },
+        put: (url, key, data) => {
+          if (checkNull(url, "url") || checkNull(key, "key") || checkNull(data, "data")) {
+            return;
+          }
 
+          // Write the new post's data simultaneously in the posts list and the user's post list.
+          const updates = {};
+          updates[`/${url}/${key}`] = data;
 
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-  const database = getDatabase(app);
-  console.log(app);
-  console.log(database);
-  window.app = app;
-  window.database = database;
-        debugger;
-  const api = {
-                get:(url,data)=>get(child(ref(database),`${url}${data}`)).then((snapshot) => {
-                      if (snapshot.exists()) {
-                        return snapshot.val();
-                      } else {
-                        console.error("No data available");
-                        return null;
-                      }
-                    }).catch((error) => {
-                      console.error(error);
-                    }),
-                post : (url,postData)=> { 
-                    
-                      // Get a key for a new Post.
-                      const newPostKey = push(child(ref(database), `${url}`)).key;
-                    
-                      // Write the new post's data simultaneously in the posts list and the user's post list.
-                      const updates = {};
-                      updates[`${url}${newPostKey}`] = postData;
-                    
-                      return update(ref(database), updates);
-                    }
-}
-</script>
-</head>
-<body>
+          return update(ref(database), updates);
+        },
+        post: (url, key, data) => {
+          if (checkNull(url, "url") || checkNull(key, "key") || checkNull(data, "data")) {
+            return;
+          }
+          set(ref(database, `${url}/${key}`), data);
+        },
+      };
+      (async () => {
+        const mans = await api.get("mans");
+        const rules = await api.get("rules");
 
-    <p>안녕하세요</p>
-
-</body>
+        for (const ruleId in rules) {
+          // ruleId = 012 , rule[ruleId] =  {current: 1, order: [0,1,2]}
+          const { current, order } = rules[ruleId];
+          const mansIds = ruleId.split("");
+          const ruleName = mansIds.map((manId) => mans[manId].name).join(",");
+          const currentName = mans[current].name;
+          const currentIndex = order.findIndex((e) => e === current);
+          const nextOrder = order[currentIndex + 1] === undefined ? order[0] : order[currentIndex + 1];
+          document.getElementById(
+            "table"
+          ).innerHTML += `<tr><th>${ruleName}</th><td>${currentName}</td><td><button onClick='setNext(\"${ruleId}\",${nextOrder})'>다음</button></td></tr>`;
+        }
+      })();
+      window.setNext = (ruleId, nextOrder) => {
+        api.put("rules", `${ruleId}/current`, nextOrder);
+        alert("변경 완료");
+        window.location.reload();
+      };
+    </script>
+  </head>
+  <body>
+    <div class="container">
+      <div class="table-wrapper">
+        <div class="title">
+          <h3>IT팀 커피 골든벨 순서</h3>
+        </div>
+        <table id="table"></table>
+      </div>
+    </div>
+  </body>
 </html>
