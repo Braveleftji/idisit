@@ -11,10 +11,29 @@
 
       .container {
         display: flex;
-        justify-content: center;
+        flex-direction: column;
+        justify-content: start;
         align-items: center;
+        padding-top: 300px;
+        gap: 100px;
         min-height: 100vh;
         background: #009ca6;
+      }
+
+      .logbox-wrapper {
+        background-color: rgb(222, 227, 231);
+        padding: 10px;
+        border-radius: 5px;
+        box-shadow: 4px 4px 4px rgb(29, 28, 28);
+      }
+      .logbox {
+        padding-left: 16px;
+        font-weight: 900;
+        height: 400px;
+        width: 500px;
+        background-color: white;
+        overflow: auto;
+        border-radius: 5px;
       }
 
       .table-wrapper {
@@ -127,7 +146,9 @@
       const app = initializeApp(firebaseConfig);
       const analytics = getAnalytics(app);
       const database = getDatabase(app);
-
+      var mans;
+      var rules;
+      var logs;
       const checkNull = (value, name) => {
         if ((!value || value === "") && value !== 0) {
           alert(`${name} is null`);
@@ -172,9 +193,10 @@
         },
       };
       (async () => {
-        const mans = await api.get("mans");
-        const rules = await api.get("rules");
-
+        mans = await api.get("mans");
+        rules = await api.get("rules");
+        logs = await api.get("logs");
+        console.log(logs);
         for (const ruleId in rules) {
           // ruleId = 012 , rule[ruleId] =  {current: 1, order: [0,1,2]}
           const { current, order } = rules[ruleId];
@@ -187,12 +209,23 @@
             "table"
           ).innerHTML += `<tr><th>${ruleName}</th><td>${currentName}</td><td><button onClick='setNext(\"${ruleId}\",${nextOrder})'>다음</button></td></tr>`;
         }
+        formatJsonAsKeyValueString(logs);
       })();
       window.setNext = (ruleId, nextOrder) => {
         api.put("rules", `${ruleId}/current`, nextOrder);
+        const manNames = ruleId
+          .split("")
+          .map((manId) => mans[manId].name)
+          .join(",");
+        api.post("logs", new Date().toLocaleString("sv-SE"), `${manNames} -> ${mans[nextOrder].name}`);
         alert("변경 완료");
         window.location.reload();
       };
+      function formatJsonAsKeyValueString(jsonObj) {
+        let formattedString = "";
+        const keys = Object.keys(jsonObj).sort((a, b) => new Date(b) - new Date(a));
+        keys.forEach((key) => (document.getElementById("logbox").innerHTML += `<p>${key} = ${jsonObj[key]}</p>`));
+      }
     </script>
   </head>
   <body>
@@ -202,6 +235,9 @@
           <h3>IT팀 커피 골든벨 순서</h3>
         </div>
         <table id="table"></table>
+      </div>
+      <div class="logbox-wrapper">
+        <div class="logbox" id="logbox"></div>
       </div>
     </div>
   </body>
